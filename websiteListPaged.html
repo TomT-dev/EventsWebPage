@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html>
+<title>Events</title>
+<base target="_self">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<!-- Include Google Material Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<head>
+  <style>
+    body {
+      font-family: "DM", sans-serif;
+      margin-left: 5px;
+      padding: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+    }
+
+    td,
+    th {
+      border-style: solid;
+      border-color: white;
+      border-width: thick;
+      text-align: left;
+      padding: 8px;
+      word-wrap: break-word;
+    }
+
+    .eventTitle {
+      color: #005ab8;
+      font-size: 1.8rem;
+      /* Base font size for larger screens */
+      font-family: "DM", sans-serif;
+      font-weight: bold;
+    }
+
+    .eventSynopsis {
+      color: #005ab8;
+      font-size: 1.2rem;
+      /* Adjustable for smaller screens */
+      font-family: "DM", sans-serif;
+      font-weight: normal;
+      line-height: 1.6;
+      margin-top: 8px;
+      margin-right: 5px;
+      text-align: justify;
+    }
+
+    #rcorners1 {
+      border-radius: 25px;
+      background: #005ab8;
+      color: white;
+      font-size: 1rem;
+      /* Adjustable for small screens */
+      font-family: "DM", sans-serif;
+      font-weight: bold;
+      padding: 15px;
+      text-align: center;
+      width: auto;
+      white-space: nowrap;
+    }
+
+    /* Responsive adjustments */
+    @media screen and (max-width: 768px) {
+      .eventTitle {
+        font-size: 1.5rem;
+        /* Reduce title size */
+      }
+
+      .eventSynopsis {
+        font-size: 1rem;
+        /* Reduce synopsis size */
+      }
+
+      td {
+        display: block;
+        width: 100%;
+      }
+
+      #rcorners1 {
+        width: 100%;
+        /* Take full width on small screens */
+        font-size: 1rem;
+        /* Slightly smaller font */
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      .eventTitle {
+        font-size: 1.2rem;
+        /* Smaller font for smaller screens */
+      }
+
+      .eventSynopsis {
+        font-size: 0.9rem;
+        /* Smaller font for synopsis */
+      }
+
+      #rcorners1 {
+        padding: 10px;
+        font-size: 0.9rem;
+        /* Smaller font for date and time */
+      }
+    }
+
+    .pagination-controls {
+      margin: 20px;
+      text-align: center;
+    }
+
+    .pagination-controls button {
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      background-color: #005ab8;
+      color: white;
+      cursor: pointer;
+    }
+
+    .pagination-controls button:disabled {
+      background-color: #ddd;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    hr.solid {
+      border-top: 3px solid #bbb;
+    }
+
+    .action-buttons-grid-container {
+      display: inline-grid;
+      grid-template-columns: 6vw 6vw 6vw 6vw;
+      padding: .5vw;
+      font-family: DMSans, sans-serif;
+      font-size: 0.875em;
+
+    }
+
+    .grid-item.icon {
+      font-size: 1.2vw;
+      text-align: left;
+      background-color: none;
+    }
+  </style>
+</head>
+
+<body onload="getEvents()">
+  <hr class="solid" id="divider" style="display:none;">
+  <div id="filterDiv" style="display:none;">
+    <label style = "margin-right: 1vw; color:gray;">Filter events by type:</label><select id="filterBy" name="filterBy" style = "width:20vw;" ></select>
+  </div>
+  <h3 id="waitMessage">Downloading events from server, please wait</h3>
+  <div id="eventContainer">
+    <!-- Events will be dynamically loaded here -->
+  </div>
+
+  <div class="action-buttons-grid-container" id="pageControls" style="display: none; text-align: left;">
+    <!-- First Page -->
+    <button id="firstPage" class = "grid-item.icon " onclick="goToFirstPage()" style="background: none; border: none; cursor: pointer;">
+      <span class="material-icons"  id = "firstPageIcon" style="font-size: 36px; color:#005ab8;">first_page</span>
+    </button>
+
+    <!-- Previous Page -->
+    <button id="prevPage" class = "grid-item.icon " onclick="goToPreviousPage()" style="background: none; border: none; cursor: pointer;">
+      <span class="material-icons" id = "prevPageIcon"  style="font-size: 36px; color:#005ab8;">chevron_left</span>
+    </button>
+
+    <!-- Next Page -->
+    <button id="nextPage" class = "grid-item.icon " onclick="goToNextPage()" style="background: none; border: none; cursor: pointer;">
+      <span class="material-icons"  id = "nextPageIcon" style="font-size: 36px; color:#005ab8;">chevron_right</span>
+    </button>
+
+    <!-- Last Page -->
+    <button id="lastPage" class = "grid-item.icon " onclick="goToLastPage()" style="background: none; border: none; cursor: pointer;">
+      <span class="material-icons" id = "lastPageIcon" style="font-size: 36px; color:#005ab8;">last_page</span>
+    </button>
+  </div>
+
+
+  <script>
+    var events,filteredEvents;
+
+  function getEvents(){
+    document.getElementById("waitMessage").innerHtml = "Downloading events from server, please wait";
+    document.getElementById("waitMessage").style.display = "block";
+
+    console.log('requesting events')
+    google.script.run.withSuccessHandler(getEventsDataHandler).getEventsData();
+  }
+
+  function getEventsDataHandler(eventsDataJson){
+    events = JSON.parse(eventsDataJson);
+    console.log(`getEventsDataHandler received` );
+    console.log(events);
+    renderEvents(false);
+  }
+
+  const eventsPerPage = 3;
+  let currentPage = 0;
+
+  function renderEvents(filterEvents = false) {
+    console.log
+    const container = document.getElementById('eventContainer');
+    container.innerHTML = ''; // Clear existing content
+
+    const start = currentPage * eventsPerPage;
+    const end = start + eventsPerPage;
+    const filterByType = document.getElementById("filterBy").value;
+    if(filterEvents && filterByType  != 'All'){
+      
+      console.log(`filtering by ${filterByType} `);
+      filteredEvents = events.filter(event => event.eventType  == filterByType );
+      
+    } else{
+      console.log(`not filtering `);
+      filteredEvents = events;
+    }
+    console.log('filteredEvents');
+    console.log(filteredEvents);
+    const pageEvents = filteredEvents.slice(start, end);
+
+    const table = document.createElement('table');
+    pageEvents.forEach(event => {
+      const row = document.createElement('tr');
+      row.className = event.eventType; // Set the row's class to event.eventType
+      let eventType;
+      if(event.eventType == "Monthly meeting"){
+        eventType = "Monthly meeting<br>In person + Zoom"
+      } else if(event.eventType.indexOf(': ') > -1){
+        eventType = event.eventType.replace(': ','<br>')
+      } else {
+        eventType = event.eventType;
+      }
+      let thisHtml = `
+        <td>
+          <div class="eventTitle" style = "color:${event.eventColour};">${event.eventTitle}</div>
+          <div class="eventSynopsis" style = "color:${event.eventColour};">${event.synopsis}</div>`;
+          
+      if(event.moreDetailsUrl.length > 0){
+        let moreDetailsText = 'Click here';
+        if(event.moreDetailsText.length > 0){
+          moreDetailsText = event.moreDetailsText
+        }
+      thisHtml +=  `<div class="eventSynopsis" style = "color:${event.eventColour};"><a href="${event.moreDetailsUrl}" target="_blank" rel="noopener noreferrer">${moreDetailsText}</a></div>`;
+      }
+          
+      thisHtml +=  ` </td>
+        <td id="rcorners1" style = "background-color:${event.eventColour};">${event.dateString}<br>${eventType}</td>
+      `;
+
+      row.innerHTML = thisHtml;
+      table.appendChild(row);
+    });
+    document.getElementById("waitMessage").style.display = "none";
+    container.appendChild(table);
+    updatePaginationButtons();
+    document.getElementById("divider").style.display = "block";
+    document.getElementById("pageControls").style.display = "block";
+    if(!filterEvents){
+      console.log(`populating filter`);
+    populateFilter();
+    }
+  }
+
+  function populateFilter(){
+    console.log(events)
+    const uniqueElements = arr => [...new Set(arr)];
+    let eventTypes = uniqueElements(events.map(event => event.eventType));
+    console.log(eventTypes);
+    console.log('change type requested');
+    const select = document.getElementById("filterBy");
+    clearDropdown(select);
+    const option = createOption("All", 'Show all event types', selected = true, disabled = false);
+    select.appendChild(option);
+    
+      eventTypes.forEach(item => {
+      const option = createOption(item, item);
+      select.appendChild(option);
+    });
+    select.addEventListener("change", filterEvents);
+    document.getElementById("filterDiv").style.display = 'block';
+  }
+
+
+ function filterEvents() {
+  renderEvents(true);
+ }
+  // const eventType = document.getElementById("filterBy").value;
+  // console.log(eventType);
+
+  // const table = document.querySelector('table');
+  // const rows = table.querySelectorAll('tr'); // Get all rows in the table
+
+  // rows.forEach(row => {
+  //   if (eventType === "All" || row.className === eventType) {
+  //     row.style.display = ""; // Show the row
+  //   } else {
+  //     row.style.display = "none"; // Hide the row
+  //   }
+  // });
+
+
+
+  /**
+ * clearDropdown
+ * Removes all child elements from a dropdown.
+ * @param {HTMLElement} dropdown - The dropdown element to clear.
+ */
+function clearDropdown(dropdown) {
+  while (dropdown.firstChild) {
+    dropdown.removeChild(dropdown.firstChild);
+  }
+}
+
+/**
+ * createOption
+ * Creates an option element for a dropdown.
+ * @param {string} value - The value of the option.
+ * @param {string} text - The text of the option.
+ * @param {boolean} selected - Whether the option is selected.
+ * @param {boolean} disabled - Whether the option is disabled.
+ * @returns {HTMLOptionElement} The created option element.
+ */
+function createOption(value, text, selected = false, disabled = false) {
+  // console.log(`%c creating option ${text}`,"color:blue;")
+  const option = document.createElement("option");
+  option.value = value;
+  option.textContent = text;
+  option.selected = selected;
+  option.disabled = disabled;
+  option.id = "default" + text.replace(/ /g,"");
+  return option;
+}
+
+  function updatePaginationButtons() {
+    document.getElementById('firstPage').disabled = currentPage === 0;
+    currentPage === 0 ? document.getElementById('firstPageIcon').style = "font-size: 36px; color:gray": document.getElementById('firstPageIcon').style = "font-size: 36px; color:#005ab8"
+
+    document.getElementById('prevPage').disabled = currentPage === 0;
+    currentPage === 0 ? document.getElementById('prevPageIcon').style = "font-size: 36px; color:gray": document.getElementById('prevPageIcon').style = "font-size: 36px; color:#005ab8"
+
+    document.getElementById('nextPage').disabled = currentPage === Math.ceil(events.length / eventsPerPage) - 1;
+    currentPage === Math.ceil(events.length / eventsPerPage) - 1 ? document.getElementById('nextPageIcon').style = "font-size: 36px; color:gray": document.getElementById('nextPageIcon').style = "font-size: 36px; color:#005ab8"
+
+    document.getElementById('lastPage').disabled = currentPage === Math.ceil(events.length / eventsPerPage) - 1;
+    currentPage === Math.ceil(events.length / eventsPerPage) - 1 ? document.getElementById('lastPageIcon').style = "font-size: 36px; color:gray": document.getElementById('lastPageIcon').style = "font-size: 36px; color:#005ab8"
+  }
+
+  function goToFirstPage() {
+    currentPage = 0;
+    renderEvents(true);
+  }
+
+  function goToLastPage() {
+    currentPage = Math.ceil(filteredEvents.length / eventsPerPage) - 1;
+    renderEvents(true);
+  }
+
+  function goToNextPage() {
+    if (currentPage < Math.ceil(filteredEvents.length / eventsPerPage) - 1) {
+      currentPage++;
+      renderEvents(true);
+    }
+  }
+
+  function goToPreviousPage() {
+    if (currentPage > 0) {
+      currentPage--;
+      renderEvents(true);
+    }
+  }
+
+
+  </script>
+
+
+</body>
+
+</html>
