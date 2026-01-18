@@ -12,7 +12,14 @@ const VERSION_HISTORY = [
     machine: 'tom-HP-Pavilion-Laptop-16-af0xxx',
     changes: 'Initial VERSION.js tracking setup'
   },
-  // Add new entries above this line
+,
+  {
+    version: 20,
+    date: '2026-01-18 17:03',
+    machine: 'tom-HP-Pavilion-Laptop-16-af0xxx',
+    changes: 'Add VERSION.js tracking for deployments'
+  }
+    // Add new entries above this line
 ];
 
 /**
