@@ -19,6 +19,13 @@ const VERSION_HISTORY = [
     machine: 'tom-HP-Pavilion-Laptop-16-af0xxx',
     changes: 'Add VERSION.js tracking for deployments'
   }
+  ,
+  {
+    version: 21,
+    date: '2026-02-15 18:45',
+    machine: 'tom-HP-Pavilion-Laptop-16-af0xxx',
+    changes: 'return zoom link'
+  }
     // Add new entries above this line
 ];
 

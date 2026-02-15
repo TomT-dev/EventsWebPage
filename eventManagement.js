@@ -5,9 +5,11 @@ function doGet(e) {
   if (action == 'ppt') {
     // return ContentService.createTextOutput(getEventsData());
     return ContentService.createTextOutput(resetEventsDataInCache()).setMimeType(ContentService.MimeType.JSON);
- } else if (action == 'refreshCache'){
-  resetEventsDataInCache();
-  return ContentService.createTextOutput('The events on the web site have been refreshed');  
+  } else if (action == 'refreshCache') {
+    resetEventsDataInCache();
+    return ContentService.createTextOutput('The events on the web site have been refreshed');
+  } else if (action == 'getUrl') {
+    return ContentService.createTextOutput(getUrl());
   } else {
     return HtmlService.createHtmlOutputFromFile('websiteListPaged').setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
@@ -16,7 +18,18 @@ function doGet(e) {
 function testGetEventsData() {
   Logger.log('////////////////////////////////////////')
   let z = JSON.parse(getEventsData())[1];
-  
+
+}
+
+function saveUrl() {
+  PropertiesService.getScriptProperties()
+    .setProperty("WEB_APP_URL", "https://script.google.com/a/macros/goringgapu3a.org.uk/s/AKfycbxFOVtjnxUDWbBsBEpmAENsR4RZx3IpKVRJ3ZMXgbz5KGvzKpOvReFQwSacprM8AdA2cQ/exec");
+
+}
+
+function getUrl() {
+  const url = PropertiesService.getScriptProperties().getProperty("WEB_APP_URL");
+  return url;
 }
 
 function resetEventsDataInCache() {
@@ -165,7 +178,7 @@ function getEventsData() {
       monthInYear: months[event[0].getMonth()],
       fullYear: event[0].getFullYear().toString(),
       friendlyDate: `${event[0].getHours().toString().padStart(2, "0")}:${event[0].getMinutes().toString().padStart(2, "0")} ${event[0].getDate()} ${months[event[0].getMonth()]} '${event[0].getFullYear().toString().slice(2)}`,
-      eventTitle: `${event[0].toLocaleDateString('en-gb', { weekday: 'short', year:'2-digit', month: 'short',day:'2-digit'})}, ${event[1]}, ${event[2]}`,
+      eventTitle: `${event[0].toLocaleDateString('en-gb', { weekday: 'short', year: '2-digit', month: 'short', day: '2-digit' })}, ${event[1]}, ${event[2]}`,
       presenter: `${event[2]}`,
       eventTopic: `${event[1]}`,
       synopsis: event[3],
@@ -352,7 +365,7 @@ function getEventsForPpt() { //checked, now produces ame output as old version
 
 }
 
-function zz(){
- const d = new Date().toLocaleDateString('en-gb', { weekday: 'short', year:'2-digit', month: 'short',day:'2-digit'});
- Logger.log(d)
+function zz() {
+  const d = new Date().toLocaleDateString('en-gb', { weekday: 'short', year: '2-digit', month: 'short', day: '2-digit' });
+  Logger.log(d)
 }
